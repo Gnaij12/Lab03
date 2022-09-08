@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ConstraintLayout layout;
     long startTime,clicks;
     float cPS;
+    int multiplier = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,11 +44,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startTime = System.currentTimeMillis();
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int lastProgress;
+            int currentProgress;
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 for (TextView temp:views) {
                     temp.setTextSize(progress);
                 }
+                editor.putInt(seekBar.getTag().toString(),seekBar.getProgress());
+                editor.apply();
             }
 
             @Override
@@ -57,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { //pop snackbar
+                currentProgress = seekBar.getProgress();
                 Snackbar snackbar = Snackbar.make(layout,
                         "Font Size Changed To " + seekBar.getProgress() + "sp",
                         Snackbar.LENGTH_LONG);
@@ -67,8 +72,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 seekBar.setProgress(lastProgress);
                                 for (TextView temp:views) {
                                     temp.setTextSize(lastProgress);
-                                    Snackbar.make(layout,"Font Size Reverted Back To " + lastProgress + "sp",Snackbar.LENGTH_LONG);
                                 }
+                                Snackbar tempSnackBar = Snackbar.make(layout,"Font Size Reverted Back To " + lastProgress + "sp",Snackbar.LENGTH_LONG);
+                                tempSnackBar.setAction("REDO", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        seekBar.setProgress(currentProgress);
+                                        for (TextView temp:views) {
+                                            temp.setTextSize(currentProgress);
+                                        }
+                                        Snackbar redoSnackBar = Snackbar.make(layout,"Font Size Rereverted Back To " + currentProgress + "sp",Snackbar.LENGTH_LONG);
+                                        View redoSnackBarView = redoSnackBar.getView();
+                                        TextView redoTextView = redoSnackBarView.findViewById(R.id.snackbar_text);
+                                        redoTextView.setTextColor(Color.RED);
+                                        redoSnackBar.show();
+                                    }
+                                });
+                                tempSnackBar.setActionTextColor(Color.RED);
+                                View tempSnackBarView = tempSnackBar.getView();
+                                TextView tempTextView = tempSnackBarView.findViewById(R.id.snackbar_text);
+                                tempTextView.setTextColor(Color.MAGENTA);
+                                tempSnackBar.show();
                             }
                         });
                 snackbar.setActionTextColor(Color.MAGENTA);
@@ -87,6 +111,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public boolean onLongClick(View v) {
                 editor.clear().apply();
                 setInitialValues();
+                Snackbar snackbar = Snackbar.make(layout,
+                        "Everything Reset!",Snackbar.LENGTH_LONG);
+                View snackBarView = snackbar.getView();
+                TextView textView = snackBarView.findViewById(R.id.snackbar_text);
+                textView.setTextColor(Color.WHITE);
+                snackbar.show();
+                startTime = System.currentTimeMillis();
+                clicks = 0;
                 return false;
             }
         });
@@ -96,16 +128,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (TextView temp:views) {
             temp.setText(sP.getString(temp.getTag().toString(),"0"));
         }
-        seekBar.setProgress(30);
+        seekBar.setProgress(sP.getInt(seekBar.getTag().toString(),30));
+        int progress = seekBar.getProgress();
+        for (TextView temp:views) {
+            temp.setTextSize(progress);
+        }
     }
 
     @Override
     public void onClick(View v) {
         TextView temp = (TextView) v;
-        temp.setText("" + (Integer.parseInt(temp.getText().toString())+1));
+        temp.setText("" + (Integer.parseInt(temp.getText().toString())+multiplier));
         editor.putString(temp.getTag().toString(),temp.getText().toString());
         editor.apply();
-        cPS = ++clicks/((System.currentTimeMillis()-startTime)/1000f);
+        cPS = multiplier*(++clicks/((System.currentTimeMillis()-startTime)/1000f));
         Toast.makeText(this,""+cPS, Toast.LENGTH_SHORT).show();
     }
 
@@ -113,5 +149,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         setInitialValues();
+    }
+
+    public void ten(View view) {
+        multiplier = 10;
+    }
+    public void one(View view) {
+        multiplier = 1;
     }
 }

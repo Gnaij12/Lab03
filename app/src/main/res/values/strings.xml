@@ -4,4 +4,6 @@
     <string name="topRight">0</string>
     <string name="botLeft">0</string>
     <string name="botRight">0</string>
+    <string name="ten">10</string>
+    <string name="one">1</string>
 </resources>
