@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Lab03</string>
+    <string name="topLeft">0</string>
+    <string name="topRight">0</string>
+    <string name="botLeft">0</string>
+    <string name="botRight">0</string>
+</resources>
